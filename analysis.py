@@ -89,7 +89,7 @@ with io.open('titles_and_texts_revised') as f:
             # 连词. 表因果的 Though, 和表并列的 and, or 的数量
             'conjunction': extractor(['IN', 'CC']),
             # 'WH-word' When, Why, What, Who, Which ...
-            'WDTc': extractor(['WDT'], False),
+            #'WDTc': extractor(['WDT'], False),
             'WDT': extractor(['WDT']),
             'WP': extractor(['WP']),
             'WP$': extractor(['WP$']),
@@ -100,10 +100,12 @@ with io.open('titles_and_texts_revised') as f:
 
             'DT': extractor(['DT']),
             'QT': extractor(['QT']),
+            'CD': extractor(['CD']),
+            #'CDc': extractor(['CD'], False),
             'JJ': extractor(['JJ']),
             'JJR': extractor(['JJR']),
             'JJS': extractor(['JJS']),
-            'CD': extractor(['CD']),
+
 
             'words': sum(words_cnt),
             'avg': round(np.average(words_cnt), 2),
@@ -163,8 +165,12 @@ axe[1, 1].set_xlabel('passive_cnt')
 
 draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
 
-draw_pics(4, 2, ['WDT', 'WP', 'WP$', 'WRB', 'VBD', 'VBN', 'VBG'])
+draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'])
 
-draw_pics(4, 2, ['DT', 'QT', 'JJ', 'JJR', 'JJS', 'CD', 'jj_total'])
+draw_pics(2, 2, ['VBD', 'VBN', 'VBG'])
+
+draw_pics(2, 2, ['DT', 'QT', 'CD'])
+
+draw_pics(2, 2, ['JJ', 'JJR', 'JJS', 'jj_total'])
 
 plt.pause(10000)
