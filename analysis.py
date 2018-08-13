@@ -51,6 +51,21 @@ def extract_from_pos_tags(tags):
             ], [])
     return extractor
 
+word_rank = {}
+line_cnt = 1
+with io.open('coca.csv') as f:
+    for line in f.readlines():
+        word_rank[line.strip()] = line_cnt
+        line_cnt += 1
+    print("get coca.csv done, coca size: {}".format(len(word_rank)))
+
+
+def get_coca_rank(word):
+    try:
+        return word_rank[word]
+    except KeyError as e:
+        return -1
+
 
 t = Tagger()
 with io.open('titles_and_texts_revised') as f:
@@ -124,14 +139,14 @@ with io.open('titles_and_texts_revised') as f:
 
 
 for i in xrange(len(splitted_text)):
-    print u[i]
+    print(u[i])
 
 fig, axe = plt.subplots(1, 1)
 plt.plot([x['words'] for x in u], 'ko--')
 axe.set_xticks([x for x in xrange(-1, 61)])
 axe.set_xticklabels([str(x) for x in xrange(0, 62)],
                     rotation=-30, fontsize='small')
-print plt.xlim()
+print(plt.xlim())
 
 
 def draw_pics(row, col, names):
