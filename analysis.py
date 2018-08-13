@@ -53,7 +53,7 @@ def extract_from_pos_tags(tags):
 
 word_rank = {}
 line_cnt = 1
-with io.open('coca.csv') as f:
+with io.open('uniq_coca.csv') as f:
     for line in f.readlines():
         word_rank[line.strip()] = line_cnt
         line_cnt += 1
