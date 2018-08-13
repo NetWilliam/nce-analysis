@@ -38,6 +38,7 @@ def get_words_of_passage_senteneces(passage):
         words_vec.append(words)
     return words_vec
 
+
 def extract_from_pos_tags(tags):
     def extractor(types, count=True):
         if count:
@@ -46,9 +47,10 @@ def extract_from_pos_tags(tags):
             ])
         else:
             return sum([
-               [y[0]] for k in tags for y in filter(lambda x: x[1] in types, k)
+                [y[0]] for k in tags for y in filter(lambda x: x[1] in types, k)
             ], [])
     return extractor
+
 
 t = Tagger()
 with io.open('titles_and_texts_revised') as f:
@@ -95,6 +97,14 @@ with io.open('titles_and_texts_revised') as f:
             'VBD': extractor(['VBD']),
             'VBN': extractor(['VBN']),
             'VBG': extractor(['VBG']),
+
+            'DT': extractor(['DT']),
+            'QT': extractor(['QT']),
+            'JJ': extractor(['JJ']),
+            'JJR': extractor(['JJR']),
+            'JJS': extractor(['JJS']),
+            'CD': extractor(['CD']),
+
             'words': sum(words_cnt),
             'avg': round(np.average(words_cnt), 2),
             'median': round(np.median(words_cnt), 2),
@@ -108,7 +118,7 @@ with io.open('titles_and_texts_revised') as f:
         }
         u[i]['nonfinite_verb'] = u[i]['VBD'] + u[i]['VBN'] + u[i]['VBG']
         u[i]['wh_word'] = u[i]['WDT'] + u[i]['WP'] + u[i]['WP$'] + u[i]['WRB']
-
+        u[i]['jj_total'] = u[i]['JJ'] + u[i]['JJR'] + u[i]['JJS']
 
 
 for i in xrange(len(splitted_text)):
@@ -120,6 +130,20 @@ axe.set_xticks([x for x in xrange(-1, 61)])
 axe.set_xticklabels([str(x) for x in xrange(0, 62)],
                     rotation=-30, fontsize='small')
 print plt.xlim()
+
+
+def draw_pics(row, col, names):
+    n_i = 0
+    fig, axe = plt.subplots(row, col)
+    for i in xrange(row):
+        for j in xrange(col):
+            if n_i >= len(names):
+                return
+            label_name = names[n_i]
+            axe[i, j].plot([x[label_name] for x in u], 'ko--')
+            axe[i, j].set_xlabel(label_name)
+            n_i += 1
+
 
 fig, axe = plt.subplots(2, 2)
 axe[0, 0].plot([x['avg'] for x in u], 'ko--')
@@ -137,30 +161,10 @@ axe[1, 1].set_xlabel('passive_cnt')
 #        axe[i, j].set_xticklabels([str(x) for x in xrange(0, 62)],
 #                        rotation=-30, fontsize='small')
 
-fig, axe = plt.subplots(2, 2)
-axe[0, 0].plot([x['FKS'] for x in u], 'ko--')
-axe[0, 0].set_xlabel('Flesch Kincaid Score')
-axe[0, 1].plot([x['conjunction'] for x in u], 'ko--')
-axe[0, 1].set_xlabel('conjunction')
-axe[1, 0].plot([x['wh_word'] for x in u], 'ko--')
-axe[1, 0].set_xlabel('wh_word')
-axe[1, 1].plot([x['nonfinite_verb'] for x in u], 'ko--')
-axe[1, 1].set_xlabel('nonfinite_verb')
+draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
 
-fig, axe = plt.subplots(4, 2)
-axe[0, 0].plot([x['WDT'] for x in u], 'ko--')
-axe[0, 0].set_xlabel('WDT')
-axe[0, 1].plot([x['WP'] for x in u], 'ko--')
-axe[0, 1].set_xlabel('WP')
-axe[1, 0].plot([x['WP$'] for x in u], 'ko--')
-axe[1, 0].set_xlabel('WP$')
-axe[1, 1].plot([x['WRB'] for x in u], 'ko--')
-axe[1, 1].set_xlabel('WRB')
-axe[2, 0].plot([x['VBD'] for x in u], 'ko--')
-axe[2, 0].set_xlabel('VBD')
-axe[2, 1].plot([x['VBN'] for x in u], 'ko--')
-axe[2, 1].set_xlabel('VBN')
-axe[3, 0].plot([x['VBG'] for x in u], 'ko--')
-axe[3, 0].set_xlabel('VBG')
+draw_pics(4, 2, ['WDT', 'WP', 'WP$', 'WRB', 'VBD', 'VBN', 'VBG'])
+
+draw_pics(4, 2, ['DT', 'QT', 'JJ', 'JJR', 'JJS', 'CD', 'jj_total'])
 
 plt.pause(10000)
