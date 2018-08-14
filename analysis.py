@@ -51,6 +51,7 @@ def extract_from_pos_tags(tags):
             ], [])
     return extractor
 
+
 word_rank = {}
 line_cnt = 1
 with io.open('uniq_coca.csv') as f:
@@ -105,10 +106,12 @@ with io.open('titles_and_texts_revised') as f:
             'conjunction': extractor(['IN', 'CC']),
             # 'WH-word' When, Why, What, Who, Which ...
             #'WDTc': extractor(['WDT'], False),
+            # Wh词
             'WDT': extractor(['WDT']),
             'WP': extractor(['WP']),
             'WP$': extractor(['WP$']),
             'WRB': extractor(['WRB']),
+            # 动词
             'VBD': extractor(['VBD']),
             'VBN': extractor(['VBN']),
             'VBG': extractor(['VBG']),
@@ -117,10 +120,19 @@ with io.open('titles_and_texts_revised') as f:
             'QT': extractor(['QT']),
             'CD': extractor(['CD']),
             #'CDc': extractor(['CD'], False),
+            # 形容词
             'JJ': extractor(['JJ']),
             'JJR': extractor(['JJR']),
             'JJS': extractor(['JJS']),
 
+            # 副词
+            'RB': extractor(['RB']),
+            'RBR': extractor(['RBR']),
+            'RBS': extractor(['RBS']),
+
+            # 专有名词
+            'NNP': extractor(['NNP']),
+            'NNPS': extractor(['NNPS']),
 
             'words': sum(words_cnt),
             'avg': round(np.average(words_cnt), 2),
