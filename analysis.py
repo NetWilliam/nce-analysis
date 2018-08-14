@@ -15,17 +15,22 @@ from textstat.textstat import textstat
 from ispassive.ispassive import Tagger
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
+from nltk.corpus import wordnet
+from nltk import pos_tag
+from nltk.stem import WordNetLemmatizer
 
 
-def get_word_counts_of_passage_sentences(passage):
-    sent_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-    sentences = sent_tokenizer.tokenize(passage)
-    length = []
-    for s in sentences:
-        words = [w for w in nltk.word_tokenize(s) if not re.match(
-            '^['+string.punctuation+']+$', w)]
-        length.append(len(words))
-    return length
+def get_wordnet_pos(tag):
+    if tag.startswith('J'):
+        return wordnet.ADJ
+    elif tag.startswith('V'):
+        return wordnet.VERB
+    elif tag.startswith('N'):
+        return wordnet.NOUN
+    elif tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return None
 
 
 def get_words_of_passage_senteneces(passage):
@@ -39,8 +44,18 @@ def get_words_of_passage_senteneces(passage):
     return words_vec
 
 
-def extract_from_pos_tags(tags):
-    def extractor(types, count=True):
+word_rank = {}
+line_cnt = 1
+with io.open('uniq_coca.csv') as f:
+    for line in f.readlines():
+        word_rank[line.strip()] = line_cnt
+        line_cnt += 1
+    print("get coca.csv done, coca size: {}".format(len(word_rank)))
+
+
+lemmatizer = WordNetLemmatizer()
+def extract_from_pos_tags(tags, calc_word_freq=False):
+    def extractor1(types, count=True):
         if count:
             return sum([
                 len(filter(lambda x: x[1] in types, k)) for k in tags
@@ -49,16 +64,37 @@ def extract_from_pos_tags(tags):
             return sum([
                 [y[0]] for k in tags for y in filter(lambda x: x[1] in types, k)
             ], [])
-    return extractor
+
+    def get_word_freq_rank(word_tuple):
+        word = word_tuple[0]
+        if word_tuple[1].startswith('NN'):
+            return -1
+        pos = get_wordnet_pos(word_tuple[1])
+
+        if pos is not None:
+            word = lemmatizer.lemmatize(word, pos)
+        try:
+            return word_rank[word]
+        except KeyError as e:
+            print("word: {} lemma: {} rank -1".format(word_tuple, word))
+            return -1
+
+    def extractor2(freq, count=True):
+        if count:
+            return sum([
+                len(filter(lambda x: get_word_freq_rank(x) > freq, k)) for k in tags
+            ])
+        else:
+            return sum([
+                [y[0]] for k in rags for y in filter(lambda x: get_word_freq_rank(x) > freq, k)
+            ], [])
+    if calc_word_freq == False:
+        return extractor1
+    else:
+        return extractor2
 
 
-word_rank = {}
-line_cnt = 1
-with io.open('uniq_coca.csv') as f:
-    for line in f.readlines():
-        word_rank[line.strip()] = line_cnt
-        line_cnt += 1
-    print("get coca.csv done, coca size: {}".format(len(word_rank)))
+
 
 
 def get_coca_rank(word):
@@ -138,6 +174,7 @@ with io.open('titles_and_texts_revised') as f:
         #pos_tags = filter(lambda x: nltk.pos_tag(x), sentence)
         pos_tags = [nltk.pos_tag(x) for x in sentence]
         extractor = extract_from_pos_tags(pos_tags)
+        word_extractor = extract_from_pos_tags(pos_tags, calc_word_freq=True)
 
         u_n = i / 20 + 1
         lexical_attr = {key: extractor([key]) for key in LEXICAL_ATTR}
@@ -150,37 +187,15 @@ with io.open('titles_and_texts_revised') as f:
             # 以下几个词根的定义请参照:
             # https://www.ibm.com/support/knowledgecenter/zh/SS5RWK_3.5.0/com.ibm.discovery.es.ta.doc/iiysspostagset.htm
             # 连词. 表因果的 Though, 和表并列的 and, or 的数量
-            'conjunction': extractor(['IN', 'CC']),
+            #'conjunction': extractor(['IN', 'CC']),
             # 'WH-word' When, Why, What, Who, Which ...
             #'WDTc': extractor(['WDT'], False),
             # Wh词
             'lexical_attr': lexical_attr,
-            'WDT': extractor(['WDT']),
-            'WP': extractor(['WP']),
-            'WP$': extractor(['WP$']),
-            'WRB': extractor(['WRB']),
-            # 动词
-            'VBD': extractor(['VBD']),
-            'VBN': extractor(['VBN']),
-            'VBG': extractor(['VBG']),
+            'beyound8000': word_extractor(8000),
+            'beyound10000': word_extractor(10000),
+            'beyound12000': word_extractor(12000),
 
-            'DT': extractor(['DT']),
-            'QT': extractor(['QT']),
-            'CD': extractor(['CD']),
-            #'CDc': extractor(['CD'], False),
-            # 形容词
-            'JJ': extractor(['JJ']),
-            'JJR': extractor(['JJR']),
-            'JJS': extractor(['JJS']),
-
-            # 副词
-            'RB': extractor(['RB']),
-            'RBR': extractor(['RBR']),
-            'RBS': extractor(['RBS']),
-
-            # 专有名词
-            'NNP': extractor(['NNP']),
-            'NNPS': extractor(['NNPS']),
 
             'words': sum(words_cnt),
             'avg': round(np.average(words_cnt), 2),
@@ -206,6 +221,10 @@ with io.open('titles_and_texts_revised') as f:
             u[i]['lexical_attr']['rb_total']
         u[i]['lexical_attr']['jjrb_percentage'] = round(
             float(u[i]['lexical_attr']['jjrb']) / u[i]['words'], 4)
+        u[i]['lexical_attr']['vb_dng'] = u[i]['lexical_attr']['VBD'] + u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
+        u[i]['lexical_attr']['v_adj_adv'] = u[i]['lexical_attr']['vb_dng'] + u[i]['lexical_attr']['jj_total'] + u[i]['lexical_attr']['rb_total']
+        u[i]['lexical_attr']['v_adj_adv_percentage'] = round(float(u[i]['lexical_attr']['v_adj_adv']) / u[i]['words'], 4)
+
 
 
 for i in xrange(len(splitted_text)):
@@ -219,12 +238,15 @@ axe.set_xticklabels([str(x) for x in xrange(0, 62)],
 print(plt.xlim())
 
 
-def draw_pics(row, col, names):
+def draw_pics(row, col, names, getter=None):
     n_i = 0
     fig, axe = plt.subplots(row, col)
     if row == 1 and col == 1:
         label_name = names[n_i]
-        axe.plot([x['lexical_attr'][label_name] for x in u], 'ko--')
+        if getter is None:
+            axe.plot([x[label_name] for x in u], 'ko--')
+        else:
+            axe.plot([getter(x, label_name) for x in u], 'ko--')
         axe.set_xlabel(label_name)
         return
 
@@ -233,7 +255,10 @@ def draw_pics(row, col, names):
             if n_i >= len(names):
                 return
             label_name = names[n_i]
-            axe[i, j].plot([x['lexical_attr'][label_name] for x in u], 'ko--')
+            if getter is None:
+                axe[i, j].plot([x[label_name] for x in u], 'ko--')
+            else:
+                axe[i, j].plot([getter(x, label_name) for x in u], 'ko--')
             axe[i, j].set_xlabel(label_name)
             n_i += 1
 
@@ -256,18 +281,26 @@ axe[1, 1].set_xlabel('passive_cnt')
 
 #draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
 
-draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'])
+lexical_attr_getter = lambda x, label: x['lexical_attr'][label]
 
-draw_pics(2, 2, ['VBD', 'VBN', 'VBG'])
+draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
 
-draw_pics(2, 2, ['DT', 'QT', 'CD'])
+draw_pics(2, 2, ['VBD', 'VBN', 'VBG', 'vb_dng'], lexical_attr_getter)
 
-draw_pics(2, 2, ['JJ', 'JJR', 'JJS', 'jj_total'])
+draw_pics(2, 2, ['DT', 'QT', 'CD'], lexical_attr_getter)
 
-draw_pics(2, 2, ['RB', 'RBR', 'RBS', 'rb_total'])
+draw_pics(2, 2, ['JJ', 'JJR', 'JJS', 'jj_total'], lexical_attr_getter)
 
-draw_pics(1, 1, ['jjrb'])
+draw_pics(2, 2, ['RB', 'RBR', 'RBS', 'rb_total'], lexical_attr_getter)
 
-draw_pics(1, 1, ['jjrb_percentage'])
+draw_pics(1, 1, ['jjrb'], lexical_attr_getter)
+
+draw_pics(1, 1, ['jjrb_percentage'], lexical_attr_getter)
+
+draw_pics(1, 1, ['v_adj_adv'], lexical_attr_getter)
+
+draw_pics(1, 1, ['v_adj_adv_percentage'], lexical_attr_getter)
+
+draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
 
 plt.pause(10000)
