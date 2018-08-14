@@ -69,6 +69,52 @@ def get_coca_rank(word):
 
 
 t = Tagger()
+
+LEXICAL_ATTR = [
+    "UNKNOWN",  # 未知词
+    "DT",  # 限定词
+    "QT",  # 量词
+    "CD",  # 基数
+    "NN",  # 名词（单数）
+    "NNS",  # 名词（复数）
+    "NNP",  # 专有名词（单数）
+    "NNPS",  # 专有名词（复数）
+    "EX",  # 表示存在性的 there，例如在 There was a party 句子中。
+    "PRP",  # 人称代词 (PP)
+    "PRP$",  # 物主代词 (PP$)
+    "POS",  # 所有格结束词
+    "RBS",  # 副词（最高级）
+    "RBR",  # 副词（比较级）
+    "RB",  # 副词
+    "JJS",  # 形容词（最高级）
+    "JJR",  # 形容词（比较级）
+    "JJ",  # 形容词
+    "MD",  # 情态动词
+    "VB",  # 动词（基本形式）
+    "VBP",  # 动词（现在时态，非第三人称单数）
+    "VBZ",  # 动词（现在时态，第三人称单数）
+    "VBD",  # 动词（过去时态）
+    "VBN",  # 动词（过去分词）
+    "VBG",  # 动词（动名词或现在分词）
+    "WDT",  # Wh 限定词，例如 Which book do you like better 句子中的 which
+    "WP",  # Wh 代词，例如用作关系代词的 which 和 that
+    "WP$",  # wh 物主代词，例如 whose
+    "WRB",  # Wh 副词，例如 I like it when you make dinner for me 句子中的 when
+    "TO",  # 介词 to
+    "IN",  # 介词或从属连词
+    "CC",  # 并列连词
+    "UH",  # 感叹词
+    "RP",  # 小品词
+    "SYM",  # 符号
+    "$",  # 货币符号
+    "''",  # 双引号或单引号
+    "(",  # 左圆括号、左方括号、左尖括号或左花括号
+    ")",  # 右圆括号、右方括号、右尖括号或右花括号
+    ",",  # 逗号
+    ".",  # 句末标点符号 (. ! ?)
+    ":",  # 句中标点符号 (: ; ... -- -)
+]
+
 with io.open('titles_and_texts_revised') as f:
     all_text = f.read()
     splitted_text = all_text.split('\n\n')
@@ -94,6 +140,7 @@ with io.open('titles_and_texts_revised') as f:
         extractor = extract_from_pos_tags(pos_tags)
 
         u_n = i / 20 + 1
+        lexical_attr = {key: extractor([key]) for key in LEXICAL_ATTR}
         u[i] = {
             'unit': u_n,
             'lesson': i + 1,
@@ -107,6 +154,7 @@ with io.open('titles_and_texts_revised') as f:
             # 'WH-word' When, Why, What, Who, Which ...
             #'WDTc': extractor(['WDT'], False),
             # Wh词
+            'lexical_attr': lexical_attr,
             'WDT': extractor(['WDT']),
             'WP': extractor(['WP']),
             'WP$': extractor(['WP$']),
@@ -145,9 +193,17 @@ with io.open('titles_and_texts_revised') as f:
             #'ARI': textstat.automated_readability_index(text),
 
         }
-        u[i]['nonfinite_verb'] = u[i]['VBD'] + u[i]['VBN'] + u[i]['VBG']
-        u[i]['wh_word'] = u[i]['WDT'] + u[i]['WP'] + u[i]['WP$'] + u[i]['WRB']
-        u[i]['jj_total'] = u[i]['JJ'] + u[i]['JJR'] + u[i]['JJS']
+        u[i]['lexical_attr']['nonfinite_verb'] = u[i]['lexical_attr']['VBD'] + \
+            u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
+        u[i]['lexical_attr']['wh_word'] = u[i]['lexical_attr']['WDT'] + \
+            u[i]['lexical_attr']['WP'] + u[i]['lexical_attr']['WP$'] + \
+            u[i]['lexical_attr']['WRB']
+        u[i]['lexical_attr']['jj_total'] = u[i]['lexical_attr']['JJ'] + \
+            u[i]['lexical_attr']['JJR'] + u[i]['lexical_attr']['JJS']
+        u[i]['lexical_attr']['rb_total'] = u[i]['lexical_attr']['RB'] + \
+            u[i]['lexical_attr']['RBR'] + u[i]['lexical_attr']['RBS']
+        u[i]['lexical_attr']['jjrb'] = u[i]['lexical_attr']['jj_total'] + \
+            u[i]['lexical_attr']['rb_total']
 
 
 for i in xrange(len(splitted_text)):
@@ -164,12 +220,18 @@ print(plt.xlim())
 def draw_pics(row, col, names):
     n_i = 0
     fig, axe = plt.subplots(row, col)
+    if row == 1 and col == 1:
+        label_name = names[n_i]
+        axe.plot([x['lexical_attr'][label_name] for x in u], 'ko--')
+        axe.set_xlabel(label_name)
+        return
+
     for i in xrange(row):
         for j in xrange(col):
             if n_i >= len(names):
                 return
             label_name = names[n_i]
-            axe[i, j].plot([x[label_name] for x in u], 'ko--')
+            axe[i, j].plot([x['lexical_attr'][label_name] for x in u], 'ko--')
             axe[i, j].set_xlabel(label_name)
             n_i += 1
 
@@ -190,7 +252,7 @@ axe[1, 1].set_xlabel('passive_cnt')
 #        axe[i, j].set_xticklabels([str(x) for x in xrange(0, 62)],
 #                        rotation=-30, fontsize='small')
 
-draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
+#draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
 
 draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'])
 
@@ -199,5 +261,9 @@ draw_pics(2, 2, ['VBD', 'VBN', 'VBG'])
 draw_pics(2, 2, ['DT', 'QT', 'CD'])
 
 draw_pics(2, 2, ['JJ', 'JJR', 'JJS', 'jj_total'])
+
+draw_pics(2, 2, ['RB', 'RBR', 'RBS', 'rb_total'])
+
+draw_pics(1, 1, ['jjrb'])
 
 plt.pause(10000)
