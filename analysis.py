@@ -204,6 +204,8 @@ with io.open('titles_and_texts_revised') as f:
             u[i]['lexical_attr']['RBR'] + u[i]['lexical_attr']['RBS']
         u[i]['lexical_attr']['jjrb'] = u[i]['lexical_attr']['jj_total'] + \
             u[i]['lexical_attr']['rb_total']
+        u[i]['lexical_attr']['jjrb_percentage'] = round(
+            float(u[i]['lexical_attr']['jjrb']) / u[i]['words'], 4)
 
 
 for i in xrange(len(splitted_text)):
@@ -265,5 +267,7 @@ draw_pics(2, 2, ['JJ', 'JJR', 'JJS', 'jj_total'])
 draw_pics(2, 2, ['RB', 'RBR', 'RBS', 'rb_total'])
 
 draw_pics(1, 1, ['jjrb'])
+
+draw_pics(1, 1, ['jjrb_percentage'])
 
 plt.pause(10000)
