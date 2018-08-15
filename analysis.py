@@ -54,6 +54,8 @@ with io.open('uniq_coca.csv') as f:
 
 
 lemmatizer = WordNetLemmatizer()
+
+
 def extract_from_pos_tags(tags, calc_word_freq=False):
     def extractor1(types, count=True):
         if count:
@@ -92,9 +94,6 @@ def extract_from_pos_tags(tags, calc_word_freq=False):
         return extractor1
     else:
         return extractor2
-
-
-
 
 
 def get_coca_rank(word):
@@ -151,11 +150,21 @@ LEXICAL_ATTR = [
     ":",  # 句中标点符号 (: ; ... -- -)
 ]
 
+chinese_translations = []
+
+with io.open('chinese_translation', encoding='utf-8') as f:
+    all_text = f.read()
+    chinese_translations = filter(lambda x: x, all_text.split(u"参考译文"))
+    print("len(chinese_translations): {}".format(len(chinese_translations)))
+    assert(len(chinese_translations) == 60)
+
+
 with io.open('titles_and_texts_revised') as f:
     all_text = f.read()
     splitted_text = all_text.split('\n\n')
     #print "len(splitted_text):", len(splitted_text)
     assert(len(splitted_text) == 60)
+    assert(len(splitted_text) == len(chinese_translations))
     #u1 = []
     #u2 = []
     #u3 = []
@@ -182,7 +191,8 @@ with io.open('titles_and_texts_revised') as f:
             'unit': u_n,
             'lesson': i + 1,
             #'title': title.encode('utf-8'),
-            'setences': len(sentence),
+            'sentences': len(sentence),
+            'translation': len(chinese_translations[i]),
             'passive_cnt': len(filter(lambda x: t.is_passive(" ".join(x)), sentence)),
             # 以下几个词根的定义请参照:
             # https://www.ibm.com/support/knowledgecenter/zh/SS5RWK_3.5.0/com.ibm.discovery.es.ta.doc/iiysspostagset.htm
@@ -208,6 +218,9 @@ with io.open('titles_and_texts_revised') as f:
             #'ARI': textstat.automated_readability_index(text),
 
         }
+        u[i]['translate_per_word'] = round(
+            float(u[i]['translation']) / u[i]['words'], 4)
+        u[i]['translate_per_sentence'] = u[i]['translation'] / u[i]['sentences']
         u[i]['lexical_attr']['nonfinite_verb'] = u[i]['lexical_attr']['VBD'] + \
             u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
         u[i]['lexical_attr']['wh_word'] = u[i]['lexical_attr']['WDT'] + \
@@ -221,10 +234,12 @@ with io.open('titles_and_texts_revised') as f:
             u[i]['lexical_attr']['rb_total']
         u[i]['lexical_attr']['jjrb_percentage'] = round(
             float(u[i]['lexical_attr']['jjrb']) / u[i]['words'], 4)
-        u[i]['lexical_attr']['vb_dng'] = u[i]['lexical_attr']['VBD'] + u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
-        u[i]['lexical_attr']['v_adj_adv'] = u[i]['lexical_attr']['vb_dng'] + u[i]['lexical_attr']['jj_total'] + u[i]['lexical_attr']['rb_total']
-        u[i]['lexical_attr']['v_adj_adv_percentage'] = round(float(u[i]['lexical_attr']['v_adj_adv']) / u[i]['words'], 4)
-
+        u[i]['lexical_attr']['vb_dng'] = u[i]['lexical_attr']['VBD'] + \
+            u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
+        u[i]['lexical_attr']['v_adj_adv'] = u[i]['lexical_attr']['vb_dng'] + \
+            u[i]['lexical_attr']['jj_total'] + u[i]['lexical_attr']['rb_total']
+        u[i]['lexical_attr']['v_adj_adv_percentage'] = round(
+            float(u[i]['lexical_attr']['v_adj_adv']) / u[i]['words'], 4)
 
 
 for i in xrange(len(splitted_text)):
@@ -281,7 +296,9 @@ axe[1, 1].set_xlabel('passive_cnt')
 
 #draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
 
-lexical_attr_getter = lambda x, label: x['lexical_attr'][label]
+
+def lexical_attr_getter(x, label): return x['lexical_attr'][label]
+
 
 draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
 
@@ -302,5 +319,8 @@ draw_pics(1, 1, ['v_adj_adv'], lexical_attr_getter)
 draw_pics(1, 1, ['v_adj_adv_percentage'], lexical_attr_getter)
 
 draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
+
+draw_pics(2, 2, ['translation', 'translate_per_word',
+                 'translate_per_sentence'])
 
 plt.pause(10000)
