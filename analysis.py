@@ -221,25 +221,22 @@ with io.open('titles_and_texts_revised') as f:
         u[i]['translate_per_word'] = round(
             float(u[i]['translation']) / u[i]['words'], 4)
         u[i]['translate_per_sentence'] = u[i]['translation'] / u[i]['sentences']
-        u[i]['lexical_attr']['nonfinite_verb'] = u[i]['lexical_attr']['VBD'] + \
+        u[i]['nonfinite_verb'] = u[i]['lexical_attr']['VBD'] + \
             u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
-        u[i]['lexical_attr']['wh_word'] = u[i]['lexical_attr']['WDT'] + \
-            u[i]['lexical_attr']['WP'] + u[i]['lexical_attr']['WP$'] + \
-            u[i]['lexical_attr']['WRB']
-        u[i]['lexical_attr']['jj_total'] = u[i]['lexical_attr']['JJ'] + \
+        u[i]['wh_word'] = u[i]['lexical_attr']['WDT'] + u[i]['lexical_attr']['WP'] + \
+            u[i]['lexical_attr']['WP$'] + u[i]['lexical_attr']['WRB']
+        u[i]['jj_total'] = u[i]['lexical_attr']['JJ'] + \
             u[i]['lexical_attr']['JJR'] + u[i]['lexical_attr']['JJS']
-        u[i]['lexical_attr']['rb_total'] = u[i]['lexical_attr']['RB'] + \
+        u[i]['rb_total'] = u[i]['lexical_attr']['RB'] + \
             u[i]['lexical_attr']['RBR'] + u[i]['lexical_attr']['RBS']
-        u[i]['lexical_attr']['jjrb'] = u[i]['lexical_attr']['jj_total'] + \
-            u[i]['lexical_attr']['rb_total']
-        u[i]['lexical_attr']['jjrb_percentage'] = round(
-            float(u[i]['lexical_attr']['jjrb']) / u[i]['words'], 4)
-        u[i]['lexical_attr']['vb_dng'] = u[i]['lexical_attr']['VBD'] + \
+        u[i]['jjrb'] = u[i]['jj_total'] + u[i]['rb_total']
+        u[i]['jjrb_percentage'] = round(float(u[i]['jjrb']) / u[i]['words'], 4)
+        u[i]['vb_dng'] = u[i]['lexical_attr']['VBD'] + \
             u[i]['lexical_attr']['VBN'] + u[i]['lexical_attr']['VBG']
-        u[i]['lexical_attr']['v_adj_adv'] = u[i]['lexical_attr']['vb_dng'] + \
-            u[i]['lexical_attr']['jj_total'] + u[i]['lexical_attr']['rb_total']
-        u[i]['lexical_attr']['v_adj_adv_percentage'] = round(
-            float(u[i]['lexical_attr']['v_adj_adv']) / u[i]['words'], 4)
+        u[i]['v_adj_adv'] = u[i]['vb_dng'] + \
+            u[i]['jj_total'] + u[i]['rb_total']
+        u[i]['v_adj_adv_percentage'] = round(
+            float(u[i]['v_adj_adv']) / u[i]['words'], 4)
 
 
 for i in xrange(len(splitted_text)):
@@ -302,21 +299,21 @@ def lexical_attr_getter(x, label): return x['lexical_attr'][label]
 
 draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
 
-draw_pics(2, 2, ['VBD', 'VBN', 'VBG', 'vb_dng'], lexical_attr_getter)
+draw_pics(2, 2, ['VBD', 'VBN', 'VBG', ], lexical_attr_getter)
 
 draw_pics(2, 2, ['DT', 'QT', 'CD'], lexical_attr_getter)
 
-draw_pics(2, 2, ['JJ', 'JJR', 'JJS', 'jj_total'], lexical_attr_getter)
+draw_pics(2, 2, ['JJ', 'JJR', 'JJS', ], lexical_attr_getter)
 
-draw_pics(2, 2, ['RB', 'RBR', 'RBS', 'rb_total'], lexical_attr_getter)
+draw_pics(2, 2, ['RB', 'RBR', 'RBS', ], lexical_attr_getter)
 
-draw_pics(1, 1, ['jjrb'], lexical_attr_getter)
+draw_pics(2, 2, ['vb_dng', 'jj_total', 'rb_total', 'jjrb'])
 
-draw_pics(1, 1, ['jjrb_percentage'], lexical_attr_getter)
+draw_pics(1, 1, ['jjrb_percentage'])
 
-draw_pics(1, 1, ['v_adj_adv'], lexical_attr_getter)
+draw_pics(1, 1, ['v_adj_adv'], )
 
-draw_pics(1, 1, ['v_adj_adv_percentage'], lexical_attr_getter)
+draw_pics(1, 1, ['v_adj_adv_percentage'], )
 
 draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
 
