@@ -78,7 +78,7 @@ def extract_from_pos_tags(tags, calc_word_freq=False):
         try:
             return word_rank[word.lower()]
         except KeyError as e:
-            print("word: {} lemma: {} rank -1".format(word_tuple, word))
+            #print("word: {} lemma: {} rank -1".format(word_tuple, word))
             global keyerror
             keyerror += 1
             return -1
@@ -143,13 +143,13 @@ LEXICAL_ATTR = [
     "UH",  # 感叹词
     "RP",  # 小品词
     "SYM",  # 符号
-    "$",  # 货币符号
-    "''",  # 双引号或单引号
-    "(",  # 左圆括号、左方括号、左尖括号或左花括号
-    ")",  # 右圆括号、右方括号、右尖括号或右花括号
-    ",",  # 逗号
-    ".",  # 句末标点符号 (. ! ?)
-    ":",  # 句中标点符号 (: ; ... -- -)
+#    "$",  # 货币符号
+#    "''",  # 双引号或单引号
+#    "(",  # 左圆括号、左方括号、左尖括号或左花括号
+#    ")",  # 右圆括号、右方括号、右尖括号或右花括号
+#    ",",  # 逗号
+#    ".",  # 句末标点符号 (. ! ?)
+#    ":",  # 句中标点符号 (: ; ... -- -)
 ]
 
 chinese_translations = []
@@ -300,27 +300,58 @@ axe[1, 1].set_xlabel('passive_cnt')
 def lexical_attr_getter(x, label): return x['lexical_attr'][label]
 
 
-draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
+#draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
+#
+#draw_pics(2, 2, ['VBD', 'VBN', 'VBG', ], lexical_attr_getter)
+#
+#draw_pics(2, 2, ['DT', 'QT', 'CD'], lexical_attr_getter)
+#
+#draw_pics(2, 2, ['JJ', 'JJR', 'JJS', ], lexical_attr_getter)
+#
+#draw_pics(2, 2, ['RB', 'RBR', 'RBS', ], lexical_attr_getter)
+#
+#draw_pics(2, 2, ['vb_dng', 'jj_total', 'rb_total', 'jjrb'])
+#
+#draw_pics(1, 1, ['jjrb_percentage'])
+#
+#draw_pics(1, 1, ['v_adj_adv'], )
+#
+#draw_pics(1, 1, ['v_adj_adv_percentage'], )
+#
+#draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
+#
+#draw_pics(2, 2, ['translation', 'translate_per_word',
+#                 'translate_per_sentence'])
 
-draw_pics(2, 2, ['VBD', 'VBN', 'VBG', ], lexical_attr_getter)
+fig, axe = plt.subplots(1, 1)
+y_dimension = len(LEXICAL_ATTR)
+y = [
+    [
+        float(x['lexical_attr'][LEXICAL_ATTR[j]]) / x['words'] for x in u
+    ] for j in xrange(1, len(LEXICAL_ATTR))
+]
+y[0] = [
+    float(x['words'] - sum(filter(lambda j: u[i]['lexical_attr'][LEXICAL_ATTR[j]], xrange(1, len(LEXICAL_ATTR))))) / x['words'] for i in xrange(60)
+]
 
-draw_pics(2, 2, ['DT', 'QT', 'CD'], lexical_attr_getter)
+def get_color(i):
+    r = float((i * 53) % 256)
+    g = float((i * 93) % 256)
+    b = float((i * 133) % 256)
+    return (r/256, g/256, b/256)
 
-draw_pics(2, 2, ['JJ', 'JJR', 'JJS', ], lexical_attr_getter)
+#bottom = [0] * len(y[1])
+bottom = np.array(len(y[0]) * [0])
+x = np.array([i in xrange(1, 61)])
+print("len(y[0]): {}, len(y[1]): {}, len(x): {}".format(len(y[0]), len(y[1]), len(x)))
+for i in xrange(len(LEXICAL_ATTR)):
+    #plt.bar(x, np.array(y[i]), bottom=bottom, color=get_color(i), label=LEXICAL_ATTR[i])
+    plt.bar(x, y[i])
+    #bottom = [b + y for b, y in zip(bottom, y[i])]
+    bottom += np.array(y[i])
 
-draw_pics(2, 2, ['RB', 'RBR', 'RBS', ], lexical_attr_getter)
+plt.legend(loc=[1, 0])
+plt.show()
 
-draw_pics(2, 2, ['vb_dng', 'jj_total', 'rb_total', 'jjrb'])
-
-draw_pics(1, 1, ['jjrb_percentage'])
-
-draw_pics(1, 1, ['v_adj_adv'], )
-
-draw_pics(1, 1, ['v_adj_adv_percentage'], )
-
-draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
-
-draw_pics(2, 2, ['translation', 'translate_per_word',
-                 'translate_per_sentence'])
 
 plt.pause(10000)
