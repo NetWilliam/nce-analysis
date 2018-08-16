@@ -54,7 +54,7 @@ with io.open('uniq_coca.csv') as f:
 
 
 lemmatizer = WordNetLemmatizer()
-
+keyerror = 0
 
 def extract_from_pos_tags(tags, calc_word_freq=False):
     def extractor1(types, count=True):
@@ -76,9 +76,11 @@ def extract_from_pos_tags(tags, calc_word_freq=False):
         if pos is not None:
             word = lemmatizer.lemmatize(word, pos)
         try:
-            return word_rank[word]
+            return word_rank[word.lower()]
         except KeyError as e:
             print("word: {} lemma: {} rank -1".format(word_tuple, word))
+            global keyerror
+            keyerror += 1
             return -1
 
     def extractor2(freq, count=True):
@@ -248,6 +250,7 @@ axe.set_xticks([x for x in xrange(-1, 61)])
 axe.set_xticklabels([str(x) for x in xrange(0, 62)],
                     rotation=-30, fontsize='small')
 print(plt.xlim())
+print("key error:{}".format(keyerror))
 
 
 def draw_pics(row, col, names, getter=None):
