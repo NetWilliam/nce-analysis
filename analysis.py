@@ -56,6 +56,7 @@ with io.open('uniq_coca.csv') as f:
 lemmatizer = WordNetLemmatizer()
 keyerror = 0
 
+
 def extract_from_pos_tags(tags, calc_word_freq=False):
     def extractor1(types, count=True):
         if count:
@@ -143,13 +144,13 @@ LEXICAL_ATTR = [
     "UH",  # 感叹词
     "RP",  # 小品词
     "SYM",  # 符号
-#    "$",  # 货币符号
-#    "''",  # 双引号或单引号
-#    "(",  # 左圆括号、左方括号、左尖括号或左花括号
-#    ")",  # 右圆括号、右方括号、右尖括号或右花括号
-#    ",",  # 逗号
-#    ".",  # 句末标点符号 (. ! ?)
-#    ":",  # 句中标点符号 (: ; ... -- -)
+    #    "$",  # 货币符号
+    #    "''",  # 双引号或单引号
+    #    "(",  # 左圆括号、左方括号、左尖括号或左花括号
+    #    ")",  # 右圆括号、右方括号、右尖括号或右花括号
+    #    ",",  # 逗号
+    #    ".",  # 句末标点符号 (. ! ?)
+    #    ":",  # 句中标点符号 (: ; ... -- -)
 ]
 
 chinese_translations = []
@@ -330,9 +331,15 @@ y = [
         float(x['lexical_attr'][LEXICAL_ATTR[j]]) / x['words'] for x in u
     ] for j in xrange(1, len(LEXICAL_ATTR))
 ]
+#y = [
+#    [
+#        float(x['lexical_attr'][LEXICAL_ATTR[i]]) / x['words'] for i in xrange(1, len(LEXICAL_ATTR))
+#    ] for x in u
+#]
 y[0] = [
     float(x['words'] - sum(filter(lambda j: u[i]['lexical_attr'][LEXICAL_ATTR[j]], xrange(1, len(LEXICAL_ATTR))))) / x['words'] for i in xrange(60)
 ]
+
 
 def get_color(i):
     r = float((i * 53) % 256)
@@ -340,17 +347,24 @@ def get_color(i):
     b = float((i * 133) % 256)
     return (r/256, g/256, b/256)
 
-#bottom = [0] * len(y[1])
-bottom = np.array(len(y[0]) * [0])
-x = np.array([i in xrange(1, 61)])
-print("len(y[0]): {}, len(y[1]): {}, len(x): {}".format(len(y[0]), len(y[1]), len(x)))
-for i in xrange(len(LEXICAL_ATTR)):
-    #plt.bar(x, np.array(y[i]), bottom=bottom, color=get_color(i), label=LEXICAL_ATTR[i])
-    plt.bar(x, y[i])
-    #bottom = [b + y for b, y in zip(bottom, y[i])]
-    bottom += np.array(y[i])
 
-plt.legend(loc=[1, 0])
+bottom = len(y[0]) * [0]
+x = [i in xrange(0, 61)]
+print("len(y[0]): {}, len(y[1]): {}, len(x): {}".format(
+    len(y[0]), len(y[1]), len(x)))
+for i in xrange(len(LEXICAL_ATTR)):
+    try:
+        plt.bar(range(len(y[i])), y[i], bottom=bottom,
+                color=get_color(i), label=LEXICAL_ATTR[i])
+    except IndexError as e:
+        print "IndexError:{}".format(str(e))
+        continue
+    except TypeError as e:
+        print "y:{}, i:{}, y[i]:".format(y, i)
+        continue
+    bottom = [b_ele + y_ele for b_ele, y_ele in zip(bottom, y[i])]
+
+plt.legend(loc='best')
 plt.show()
 
 
