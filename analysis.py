@@ -216,7 +216,7 @@ with io.open('titles_and_texts_revised') as f:
             #'ARI': textstat.automated_readability_index(text),
 
         }
-        u[i]['words'] = sum(filter(
+        u[i]['words'] = sum(map(
             lambda k: u[i]['lexical_attr'][LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR))))
         u[i]['translate_per_word'] = round(
             float(u[i]['translation']) / u[i]['words'], 4)
@@ -239,8 +239,8 @@ with io.open('titles_and_texts_revised') as f:
             float(u[i]['v_adj_adv']) / u[i]['words'], 4)
 
 
-for i in xrange(len(splitted_text)):
-    print(u[i])
+#for i in xrange(len(splitted_text)):
+#    print(u[i])
 
 fig, axe = plt.subplots(1, 1)
 plt.plot([x['words'] for x in u], 'ko--')
@@ -251,7 +251,7 @@ print(plt.xlim())
 print("key error:{}".format(keyerror))
 
 for x in u:
-    assert(x['words'] == sum(filter(lambda k: x['lexical_attr']
+    assert(x['words'] == sum(map(lambda k: x['lexical_attr']
                                     [LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR)))))
 
 
@@ -338,7 +338,7 @@ import math
 for i in range(60):
     #assert(math.fabs(sum(map(lambda k: u[i]['lexical_attr'][LEXICAL_ATTR[k]], xrange(
     #    len(LEXICAL_ATTR)))) - 1.0) <= 0.000001)
-    print sum(map(lambda k: y[k][i], xrange(len(LEXICAL_ATTR))))
+    #print sum(map(lambda k: y[k][i], xrange(len(LEXICAL_ATTR))))
     assert(math.fabs(
         sum(map(lambda k: y[k][i], xrange(len(LEXICAL_ATTR)))) - 1.0) < 0.00001)
 
@@ -364,10 +364,11 @@ for i in xrange(len(LEXICAL_ATTR)):
     except TypeError as e:
         print "y:{}, i:{}, y[i]:".format(y, i)
         continue
-    print "bottom:{}".format(bottom)
+    #print "bottom:{}".format(bottom)
     bottom = [b_ele + y_ele for b_ele, y_ele in zip(bottom, y[i])]
 
-plt.legend(loc='best')
+#plt.legend(loc=[1, 0], fontsize='small')
+plt.legend(loc=[1, 0], prop={'size': 11})
 plt.show()
 
 
