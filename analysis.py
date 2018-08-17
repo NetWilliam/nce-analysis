@@ -165,13 +165,8 @@ with io.open('chinese_translation', encoding='utf-8') as f:
 with io.open('titles_and_texts_revised') as f:
     all_text = f.read()
     splitted_text = all_text.split('\n\n')
-    #print "len(splitted_text):", len(splitted_text)
     assert(len(splitted_text) == 60)
     assert(len(splitted_text) == len(chinese_translations))
-    #u1 = []
-    #u2 = []
-    #u3 = []
-    #u = [[], [], []]
     u = [{} for i in xrange(60)]
     #for lesson in splitted_text:
     for i in xrange(len(splitted_text)):
@@ -210,7 +205,7 @@ with io.open('titles_and_texts_revised') as f:
             'beyound12000': word_extractor(12000),
 
 
-            'words': sum(words_cnt),
+            #'words': sum(words_cnt),
             'avg': round(np.average(words_cnt), 2),
             'median': round(np.median(words_cnt), 2),
             'std': round(np.std(words_cnt), 2),
@@ -221,6 +216,8 @@ with io.open('titles_and_texts_revised') as f:
             #'ARI': textstat.automated_readability_index(text),
 
         }
+        u[i]['words'] = sum(filter(
+            lambda k: u[i]['lexical_attr'][LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR))))
         u[i]['translate_per_word'] = round(
             float(u[i]['translation']) / u[i]['words'], 4)
         u[i]['translate_per_sentence'] = u[i]['translation'] / u[i]['sentences']
@@ -252,6 +249,10 @@ axe.set_xticklabels([str(x) for x in xrange(0, 62)],
                     rotation=-30, fontsize='small')
 print(plt.xlim())
 print("key error:{}".format(keyerror))
+
+for x in u:
+    assert(x['words'] == sum(filter(lambda k: x['lexical_attr']
+                                    [LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR)))))
 
 
 def draw_pics(row, col, names, getter=None):
@@ -325,20 +326,21 @@ def lexical_attr_getter(x, label): return x['lexical_attr'][label]
 #                 'translate_per_sentence'])
 
 fig, axe = plt.subplots(1, 1)
-y_dimension = len(LEXICAL_ATTR)
 y = [
+    # filter 会判断返回的字段是否为 0 或者空, 故不等于下面的实现
+    #[ele for ele in filter(lambda i: float(u[i]['lexical_attr'][LEXICAL_ATTR[k]]) / u[i]['words'], xrange(len(u)))] for k in xrange(len(LEXICAL_ATTR))
     [
         float(x['lexical_attr'][LEXICAL_ATTR[j]]) / x['words'] for x in u
-    ] for j in xrange(1, len(LEXICAL_ATTR))
+    ] for j in xrange(len(LEXICAL_ATTR))
 ]
-#y = [
-#    [
-#        float(x['lexical_attr'][LEXICAL_ATTR[i]]) / x['words'] for i in xrange(1, len(LEXICAL_ATTR))
-#    ] for x in u
-#]
-y[0] = [
-    float(x['words'] - sum(filter(lambda j: u[i]['lexical_attr'][LEXICAL_ATTR[j]], xrange(1, len(LEXICAL_ATTR))))) / x['words'] for i in xrange(60)
-]
+
+import math
+for i in range(60):
+    #assert(math.fabs(sum(map(lambda k: u[i]['lexical_attr'][LEXICAL_ATTR[k]], xrange(
+    #    len(LEXICAL_ATTR)))) - 1.0) <= 0.000001)
+    print sum(map(lambda k: y[k][i], xrange(len(LEXICAL_ATTR))))
+    assert(math.fabs(
+        sum(map(lambda k: y[k][i], xrange(len(LEXICAL_ATTR)))) - 1.0) < 0.00001)
 
 
 def get_color(i):
@@ -357,11 +359,12 @@ for i in xrange(len(LEXICAL_ATTR)):
         plt.bar(range(len(y[i])), y[i], bottom=bottom,
                 color=get_color(i), label=LEXICAL_ATTR[i])
     except IndexError as e:
-        print "IndexError:{}".format(str(e))
+        print "IndexError:{}, len(y):{}, i:{}".format(str(e), len(y), i)
         continue
     except TypeError as e:
         print "y:{}, i:{}, y[i]:".format(y, i)
         continue
+    print "bottom:{}".format(bottom)
     bottom = [b_ele + y_ele for b_ele, y_ele in zip(bottom, y[i])]
 
 plt.legend(loc='best')
