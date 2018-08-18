@@ -48,7 +48,7 @@ word_rank = {}
 line_cnt = 1
 with io.open('uniq_coca.csv') as f:
     for line in f.readlines():
-        word_rank[line.strip()] = line_cnt
+        word_rank[line.strip().lower()] = line_cnt
         line_cnt += 1
     print("get coca.csv done, coca size: {}".format(len(word_rank)))
 
@@ -237,6 +237,8 @@ with io.open('titles_and_texts_revised') as f:
             u[i]['jj_total'] + u[i]['rb_total']
         u[i]['v_adj_adv_percentage'] = round(
             float(u[i]['v_adj_adv']) / u[i]['words'], 4)
+        u[i]['conjunction'] = u[i]['lexical_attr']['IN'] + \
+            u[i]['lexical_attr']['CC']
 
 
 #for i in xrange(len(splitted_text)):
@@ -254,8 +256,11 @@ for x in u:
     assert(x['words'] == sum(map(lambda k: x['lexical_attr']
                                  [LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR)))))
 
+fig_cnt = 1
+
 
 def draw_pics(row, col, names, getter=None):
+    global fig_cnt
     n_i = 0
     fig, axe = plt.subplots(row, col)
     if row == 1 and col == 1:
@@ -265,6 +270,8 @@ def draw_pics(row, col, names, getter=None):
         else:
             axe.plot([getter(x, label_name) for x in u], 'ko--')
         axe.set_xlabel(label_name)
+        plt.savefig("./svg/fig-{}.svg".format(fig_cnt), dpi=1080)
+        fig_cnt += 1
         return
 
     for i in xrange(row):
@@ -279,6 +286,9 @@ def draw_pics(row, col, names, getter=None):
             axe[i, j].set_xlabel(label_name)
             n_i += 1
 
+    plt.savefig("./svg/fig-{}.svg".format(fig_cnt), dpi=1080)
+    fig_cnt += 1
+
 
 fig, axe = plt.subplots(2, 2)
 axe[0, 0].plot([x['avg'] for x in u], 'ko--')
@@ -290,40 +300,42 @@ axe[1, 0].set_xlabel('std')
 axe[1, 1].plot([x['passive_cnt']
                 for x in u], 'ko--')
 axe[1, 1].set_xlabel('passive_cnt')
+plt.savefig("./svg/fig-{}.svg".format(fig_cnt), dpi=1080)
+fig_cnt += 1
 #for i in xrange(2):
 #    for j in xrange(2):
 #        axe[i, j].set_xticks([x for x in xrange(-1, 61)])
 #        axe[i, j].set_xticklabels([str(x) for x in xrange(0, 62)],
 #                        rotation=-30, fontsize='small')
 
-#draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
+draw_pics(2, 2, ['FKS', 'conjunction', 'wh_word', 'nonfinite_verb'])
 
 
 def lexical_attr_getter(x, label): return x['lexical_attr'][label]
 
 
-#draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
-#
-#draw_pics(2, 2, ['VBD', 'VBN', 'VBG', ], lexical_attr_getter)
-#
-#draw_pics(2, 2, ['DT', 'QT', 'CD'], lexical_attr_getter)
-#
-#draw_pics(2, 2, ['JJ', 'JJR', 'JJS', ], lexical_attr_getter)
-#
-#draw_pics(2, 2, ['RB', 'RBR', 'RBS', ], lexical_attr_getter)
-#
-#draw_pics(2, 2, ['vb_dng', 'jj_total', 'rb_total', 'jjrb'])
-#
-#draw_pics(1, 1, ['jjrb_percentage'])
-#
-#draw_pics(1, 1, ['v_adj_adv'], )
-#
-#draw_pics(1, 1, ['v_adj_adv_percentage'], )
-#
-#draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
-#
-#draw_pics(2, 2, ['translation', 'translate_per_word',
-#                 'translate_per_sentence'])
+draw_pics(2, 2, ['WDT', 'WP', 'WP$', 'WRB'], lexical_attr_getter)
+
+draw_pics(2, 2, ['VBD', 'VBN', 'VBG', ], lexical_attr_getter)
+
+draw_pics(2, 2, ['DT', 'QT', 'CD'], lexical_attr_getter)
+
+draw_pics(2, 2, ['JJ', 'JJR', 'JJS', ], lexical_attr_getter)
+
+draw_pics(2, 2, ['RB', 'RBR', 'RBS', ], lexical_attr_getter)
+
+draw_pics(2, 2, ['vb_dng', 'jj_total', 'rb_total', 'jjrb'])
+
+draw_pics(1, 1, ['jjrb_percentage'])
+
+draw_pics(1, 1, ['v_adj_adv'], )
+
+draw_pics(1, 1, ['v_adj_adv_percentage'], )
+
+draw_pics(2, 2, ['beyound8000', 'beyound10000', 'beyound12000'])
+
+draw_pics(2, 2, ['translation', 'translate_per_word',
+                 'translate_per_sentence'])
 
 fig, axe = plt.subplots(1, 1)
 y = [
@@ -369,6 +381,8 @@ for i in xrange(len(LEXICAL_ATTR)):
 
 #plt.legend(loc=[1, 0], fontsize='small')
 plt.legend(loc=[1, 0], prop={'size': 11})
+plt.savefig("./svg/fig-{}.svg".format(fig_cnt), dpi=1080)
+fig_cnt += 1
 plt.show()
 
 
