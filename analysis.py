@@ -252,7 +252,7 @@ print("key error:{}".format(keyerror))
 
 for x in u:
     assert(x['words'] == sum(map(lambda k: x['lexical_attr']
-                                    [LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR)))))
+                                 [LEXICAL_ATTR[k]], xrange(len(LEXICAL_ATTR)))))
 
 
 def draw_pics(row, col, names, getter=None):
@@ -346,7 +346,7 @@ for i in range(60):
 def get_color(i):
     r = float((i * 53) % 256)
     g = float((i * 93) % 256)
-    b = float((i * 133) % 256)
+    b = float((i * 143) % 256)
     return (r/256, g/256, b/256)
 
 
