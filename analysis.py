@@ -366,9 +366,10 @@ bottom = len(y[0]) * [0]
 x = [i in xrange(0, 61)]
 print("len(y[0]): {}, len(y[1]): {}, len(x): {}".format(
     len(y[0]), len(y[1]), len(x)))
+fig, axe = plt.subplots(1, 1)
 for i in xrange(len(LEXICAL_ATTR)):
     try:
-        plt.bar(range(len(y[i])), y[i], bottom=bottom,
+        axe.bar(range(len(y[i])), y[i], bottom=bottom,
                 color=get_color(i), label=LEXICAL_ATTR[i])
     except IndexError as e:
         print "IndexError:{}, len(y):{}, i:{}".format(str(e), len(y), i)
@@ -380,7 +381,9 @@ for i in xrange(len(LEXICAL_ATTR)):
     bottom = [b_ele + y_ele for b_ele, y_ele in zip(bottom, y[i])]
 
 #plt.legend(loc=[1, 0], fontsize='small')
-plt.legend(loc=[1, 0], prop={'size': 11})
+handles, labels = axe.get_legend_handles_labels()
+axe.legend(handles[::-1], labels[::-1], loc=[1, 0], prop={'size': 11})
+#plt.legend(loc=[1, 0], prop={'size': 11})
 plt.savefig("./svg/fig-{}.svg".format(fig_cnt), dpi=1080)
 fig_cnt += 1
 plt.show()
